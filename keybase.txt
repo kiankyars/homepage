@@ -1,0 +1,53 @@
+https://keybase.io/stevenheidel
+--------------------------------------------------------------------
+
+I hereby claim:
+
+  * I am an admin of https://stevenheidel.com
+  * I am stevenheidel (https://keybase.io/stevenheidel) on keybase.
+  * I have a public key ASB4s3oUCHALpW1zA4BN3c7_LY3SDOOK78csPYde8aVaXAo
+
+To do so, I am signing this object:
+
+{
+  "body": {
+    "key": {
+      "eldest_kid": "012078b37a1408700ba56d7303804dddceff2d8dd20ce38aefc72c3d875ef1a55a5c0a",
+      "host": "keybase.io",
+      "kid": "012078b37a1408700ba56d7303804dddceff2d8dd20ce38aefc72c3d875ef1a55a5c0a",
+      "uid": "0f405c997973218bc3facb70d2867c19",
+      "username": "stevenheidel"
+    },
+    "merkle_root": {
+      "ctime": 1572489972,
+      "hash": "7ee0314ef4cf04a43d46fd0a76c0cf769b3d88c3e28702cfd5bfe9060568eb724d10998a59001371ed3345bdadcee2244888c8afd80aa2e942e5313ecf7ceb8d",
+      "hash_meta": "b40f012eefca487db4f923511a12440a1a449a451b29ce05117093d44e9c0c45",
+      "seqno": 8545421
+    },
+    "service": {
+      "entropy": "wUgTP+5Gq3lf2ltxlkLDk5Wd",
+      "hostname": "stevenheidel.com",
+      "protocol": "https:"
+    },
+    "type": "web_service_binding",
+    "version": 2
+  },
+  "client": {
+    "name": "keybase.io go client",
+    "version": "4.7.2"
+  },
+  "ctime": 1572489981,
+  "expire_in": 504576000,
+  "prev": "9af7f13e46ab9420f6e3c17ac173a9144c99772d248d24c75c6cddcd4e0ae4c6",
+  "seqno": 38,
+  "tag": "signature"
+}
+
+which yields the signature:
+
+hKRib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgeLN6FAhwC6VtcwOATd3O/y2N0gzjiu/HLD2HXvGlWlwKp3BheWxvYWTESpcCJsQgmvfxPkarlCD248F6wXOpFEyZdy0kjSTHXGzdzU4K5MbEIF065eWULSDsyk4QN5pI25472NjsFWUGR8jmjDL/tnuEAgHCo3NpZ8RA8NXTpV8kUzfao7Jaktj6DvFoPxEKhCV25840/IQLHSpc36vqdaxD8CcvcSKP6eCHYbMkdEVti03U1zmwuKq3B6hzaWdfdHlwZSCkaGFzaIKkdHlwZQildmFsdWXEIMJ/UePWwYUZPcaJ+0dH0M32SevXZKYx0TmGd9hdiZLZo3RhZ80CAqd2ZXJzaW9uAQ==
+
+And finally, I am proving ownership of this host by posting or
+appending to this document.
+
+View my publicly-auditable identity here: https://keybase.io/stevenheidel
