@@ -5,46 +5,116 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kian Kyars</title>
-  <link href="output.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f7fafc;
+      color: #1a202c;
+      font-family: Arial, sans-serif;
+      padding: 1rem 2.5rem;
+      margin: 0;
+    }
+
+    .container {
+      height: 64vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .content {
+      max-width: 40rem;
+      text-align: center;
+    }
+
+    .title {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+
+    .subtitle {
+      font-size: 1.25rem;
+      margin: 1rem 0;
+    }
+
+    .icons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .icon {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .icon img {
+      height: 2rem;
+      width: 2rem;
+      transition: transform 0.3s;
+    }
+
+    .icon span {
+      display: none;
+      position: absolute;
+      bottom: -1.5rem;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.2rem;
+    }
+
+    .icon:hover img {
+      transform: translateY(-1.5rem);
+    }
+
+    .icon:hover span {
+      display: block;
+    }
+  </style>
 </head>
 
-<body class="bg-gray-100 text-gray-900 font-sans p-3 md:p-10">
-  <div class="h-64 flex justify-center items-center">
-    <div class="max-w-lg text-center">
-      <h1 class="text-3xl font-bold">Hello, I'm Kian Kyars</h1>
-      <p class="text-xl my-4">🏠 Edmonton | 💼 UAlberta</p>
-      <div class="flex justify-center gap-3 mt-4">
+<body>
+  <div class="container">
+    <div class="content">
+      <h1 class="title">Hello, I'm Kian Kyars</h1>
+      <p class="subtitle">🏠 Edmonton | 💼 UAlberta</p>
+      <div class="icons">
         <a href="https://github.com/kiankyars" class="icon">
-          <img src="github.svg" alt="GitHub" class="h-8 w-8">
-          <span class="label">GitHub</span>
+          <img src="github.svg" alt="GitHub">
+          <span>GitHub</span>
         </a>
         <a href="https://www.goodreads.com/user/show/108079212-kian" class="icon">
-          <img src="goodreads.svg" alt="Goodreads" class="h-8 w-8">
-          <span class="label">Goodreads</span>
+          <img src="goodreads.svg" alt="Goodreads">
+          <span>Goodreads</span>
         </a>
         <a href="https://www.linkedin.com/in/kyars" class="icon">
-          <img src="linkedin.svg" alt="LinkedIn" class="h-8 w-8">
-          <span class="label">LinkedIn</span>
+          <img src="linkedin.svg" alt="LinkedIn">
+          <span>LinkedIn</span>
         </a>
         <a href="https://medium.com/@kyars" class="icon">
-          <img src="medium.svg" alt="Medium" class="h-8 w-8">
-          <span class="label">Medium</span>
+          <img src="medium.svg" alt="Medium">
+          <span>Medium</span>
         </a>
         <a href="https://twitter.com/neuralkian" class="icon">
-          <img src="x.svg" alt="X" class="h-8 w-8">
-          <span class="label">X</span>
+          <img src="x.svg" alt="X">
+          <span>X</span>
         </a>
-        <a href="https://www.strava.com/athletes/kyars" class="icon"></a>
-          <img src="strava.svg" alt="strava" class="h-8 w-8">
-          <span class="label">strava</span>
+        <a href="https://www.strava.com/athletes/kyars" class="icon">
+          <img src="strava.svg" alt="Strava">
+          <span>Strava</span>
         </a>
-        <a href="https://www.youtube.com/@kiankyars" class="icon"></a>
-          <img src="youtube.svg" alt="youtube" class="h-8 w-8">
-          <span class="label">youtube</span>
+        <a href="https://www.youtube.com/@kiankyars" class="icon">
+          <img src="youtube.svg" alt="YouTube">
+          <span>YouTube</span>
         </a>
         <a href="mailto:kkyars@ualberta.ca" class="icon">
-          <img src="email.svg" alt="Email" class="h-8 w-8">
-          <span class="label">Email</span>
+          <img src="email.svg" alt="Email">
+          <span>Email</span>
         </a>
       </div>
     </div>
