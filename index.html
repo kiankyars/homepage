@@ -9,7 +9,16 @@
 </head>
 
 <body>
-  <button id="night-toggle" class="night-toggle">🌙</button>
+  <!-- Night Mode Toggle -->
+  <div class="night-mode-toggle">
+    <button id="nightModeToggle" class="toggle-button" aria-label="Toggle night mode">
+      <div class="toggle-track">
+        <div class="toggle-thumb"></div>
+      </div>
+      <span class="toggle-label">🌙</span>
+    </button>
+  </div>
+
   <div class="container">
     <div class="content">
       <h1 class="title">Hello, I'm Kian</h1>
@@ -66,13 +75,25 @@
       </div>
     </div>
   </div>
+
   <script>
-    const toggle = document.getElementById('night-toggle');
-    const html = document.documentElement;
+    // Night mode functionality
+    const toggle = document.getElementById('nightModeToggle');
+    const body = document.body;
+    
+    // Check for saved preference or default to light mode
+    const savedMode = localStorage.getItem('nightMode');
+    if (savedMode === 'true') {
+      body.classList.add('night-mode');
+      toggle.classList.add('active');
+    }
     
     toggle.addEventListener('click', () => {
-      html.classList.toggle('night');
-      toggle.textContent = html.classList.contains('night') ? '☀️' : '🌙';
+      body.classList.toggle('night-mode');
+      toggle.classList.toggle('active');
+      
+      // Save preference
+      localStorage.setItem('nightMode', body.classList.contains('night-mode'));
     });
   </script>
 </body>
