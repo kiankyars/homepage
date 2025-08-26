@@ -9,7 +9,7 @@
 </head>
 
 <body>
-  <button id="theme-toggle" onclick="toggleTheme()"></button>
+  <button id="night-toggle" class="night-toggle">🌙</button>
   <div class="container">
     <div class="content">
       <h1 class="title">Hello, I'm Kian</h1>
@@ -67,16 +67,13 @@
     </div>
   </div>
   <script>
-    function toggleTheme() {
-      const body = document.body;
-      const isDark = body.classList.contains('dark');
-      
-      if (isDark) {
-        body.classList.remove('dark');
-      } else {
-        body.classList.add('dark');
-      }
-    }
+    const toggle = document.getElementById('night-toggle');
+    const html = document.documentElement;
+    
+    toggle.addEventListener('click', () => {
+      html.classList.toggle('night');
+      toggle.textContent = html.classList.contains('night') ? '☀️' : '🌙';
+    });
   </script>
 </body>
 

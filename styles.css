@@ -1,59 +1,45 @@
 /* styles.css */
 :root {
-  --bg-color: #f7fafc;
-  --text-color: #1a202c;
+  --bg: #f7fafc;
+  --text: #1a202c;
   --tooltip-bg: rgba(0, 0, 0, 0.7);
 }
 
-.dark {
-  --bg-color: #1a202c;
-  --text-color: #f7fafc;
+.night {
+  --bg: #1a202c;
+  --text: #f7fafc;
   --tooltip-bg: rgba(255, 255, 255, 0.9);
 }
 
 body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
+    background-color: var(--bg);
+    color: var(--text);
     font-family: Arial, sans-serif;
     padding: 1rem 2.5rem;
     margin: 0;
     transition: background-color 0.3s, color 0.3s;
   }
 
-#theme-toggle {
+.night-toggle {
   position: fixed;
   top: 1rem;
   right: 1rem;
-  width: 51px;
-  height: 31px;
-  background: #e5e7eb;
-  border-radius: 16px;
+  background: none;
   border: none;
+  font-size: 1.5rem;
   cursor: pointer;
   z-index: 1000;
-  transition: background-color 0.3s;
-  position: relative;
-}
-
-#theme-toggle::before {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 27px;
-  height: 27px;
-  background: white;
+  padding: 0.5rem;
   border-radius: 50%;
-  transition: transform 0.3s;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: background-color 0.3s;
 }
 
-.dark #theme-toggle {
-  background: #3b82f6;
+.night-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
-.dark #theme-toggle::before {
-  transform: translateX(20px);
+.night .night-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
   
   .container {
@@ -105,7 +91,7 @@ body {
     position: absolute;
     bottom: -1.5rem;
     background-color: var(--tooltip-bg);
-    color: var(--text-color);
+    color: var(--text);
     padding: 0.2rem 0.5rem;
     border-radius: 0.2rem;
   }
