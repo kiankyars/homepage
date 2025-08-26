@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kian Kyars</title>
   <link href="styles.css" rel="stylesheet">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';">
 </head>
 
 <body>
@@ -77,43 +78,38 @@
   </div>
 
   <script>
-    // Wait for DOM to be fully loaded
-    document.addEventListener('DOMContentLoaded', function() {
-      // Night mode functionality
-      const toggle = document.getElementById('nightModeToggle');
-      const body = document.body;
+    // Robust night mode functionality
+    (function() {
+      'use strict';
       
-      console.log('Toggle element:', toggle);
-      console.log('Body element:', body);
-      
-      if (!toggle) {
-        console.error('Toggle button not found!');
-        return;
+      function initNightMode() {
+        const toggle = document.getElementById('nightModeToggle');
+        const body = document.body;
+        
+        if (!toggle || !body) return;
+        
+        // Check saved preference
+        const savedMode = localStorage.getItem('nightMode') === 'true';
+        if (savedMode) {
+          body.classList.add('night-mode');
+          toggle.classList.add('active');
+        }
+        
+        // Add click handler
+        toggle.addEventListener('click', function(e) {
+          e.preventDefault();
+          body.classList.toggle('night-mode');
+          toggle.classList.toggle('active');
+          localStorage.setItem('nightMode', body.classList.contains('night-mode'));
+        });
       }
       
-      // Check for saved preference or default to light mode
-      const savedMode = localStorage.getItem('nightMode');
-      console.log('Saved mode:', savedMode);
-      
-      if (savedMode === 'true') {
-        body.classList.add('night-mode');
-        toggle.classList.add('active');
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initNightMode);
+      } else {
+        initNightMode();
       }
-      
-      toggle.addEventListener('click', function(e) {
-        console.log('Toggle clicked!');
-        e.preventDefault();
-        e.stopPropagation();
-        
-        body.classList.toggle('night-mode');
-        toggle.classList.toggle('active');
-        
-        console.log('Night mode active:', body.classList.contains('night-mode'));
-        
-        // Save preference
-        localStorage.setItem('nightMode', body.classList.contains('night-mode'));
-      });
-    });
+    })();
   </script>
 </body>
 
