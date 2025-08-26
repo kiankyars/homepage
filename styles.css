@@ -26,16 +26,22 @@ body.night-mode {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background: none;
-    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #e2e8f0;
     cursor: pointer;
     padding: 0.5rem;
     border-radius: 0.5rem;
     transition: background-color 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .toggle-button:hover {
     background-color: rgba(0, 0, 0, 0.1);
+}
+
+body.night-mode .toggle-button {
+    background: rgba(26, 32, 44, 0.9);
+    border-color: #4a5568;
 }
 
 body.night-mode .toggle-button:hover {

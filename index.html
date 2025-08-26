@@ -77,23 +77,42 @@
   </div>
 
   <script>
-    // Night mode functionality
-    const toggle = document.getElementById('nightModeToggle');
-    const body = document.body;
-    
-    // Check for saved preference or default to light mode
-    const savedMode = localStorage.getItem('nightMode');
-    if (savedMode === 'true') {
-      body.classList.add('night-mode');
-      toggle.classList.add('active');
-    }
-    
-    toggle.addEventListener('click', () => {
-      body.classList.toggle('night-mode');
-      toggle.classList.toggle('active');
+    // Wait for DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      // Night mode functionality
+      const toggle = document.getElementById('nightModeToggle');
+      const body = document.body;
       
-      // Save preference
-      localStorage.setItem('nightMode', body.classList.contains('night-mode'));
+      console.log('Toggle element:', toggle);
+      console.log('Body element:', body);
+      
+      if (!toggle) {
+        console.error('Toggle button not found!');
+        return;
+      }
+      
+      // Check for saved preference or default to light mode
+      const savedMode = localStorage.getItem('nightMode');
+      console.log('Saved mode:', savedMode);
+      
+      if (savedMode === 'true') {
+        body.classList.add('night-mode');
+        toggle.classList.add('active');
+      }
+      
+      toggle.addEventListener('click', function(e) {
+        console.log('Toggle clicked!');
+        e.preventDefault();
+        e.stopPropagation();
+        
+        body.classList.toggle('night-mode');
+        toggle.classList.toggle('active');
+        
+        console.log('Night mode active:', body.classList.contains('night-mode'));
+        
+        // Save preference
+        localStorage.setItem('nightMode', body.classList.contains('night-mode'));
+      });
     });
   </script>
 </body>
