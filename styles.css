@@ -40,7 +40,7 @@ body {
 
 @media (max-width: 480px) {
     .icons {
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(6);
         max-width: 100%;
         gap: 0.5rem;
     }
