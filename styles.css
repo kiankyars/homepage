@@ -36,12 +36,3 @@ body {
 .icon img { width: 28px; height: 28px; place-self: center; }
 
 .icon span { display: none; }
-
-@media (max-width: 480px) {
-    .icons {
-        grid-template-columns: repeat(4);
-        max-width: 100%;
-        gap: 0.5rem;
-    }
-    .icon img { width: 24px; height: 24px; }
-}
