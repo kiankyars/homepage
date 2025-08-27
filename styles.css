@@ -1,151 +1,39 @@
-/* styles.css */
+/* Minimal styles for layout and square link boxes */
 body {
-    background-color: #f7fafc;
-    color: #1a202c;
-    font-family: Arial, sans-serif;
-    padding: 1rem 2.5rem;
     margin: 0;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    font-family: Arial, sans-serif;
 }
 
-/* Night Mode Styles */
-body.night-mode {
-    background-color: #1a202c;
-    color: #f7fafc;
-}
-
-/* Night Mode Toggle */
-.night-mode-toggle {
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    z-index: 1000;
-}
-
-.toggle-button {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.9);
-    border: 2px solid #e2e8f0;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 0.5rem;
-    transition: background-color 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.toggle-button:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-}
-
-body.night-mode .toggle-button {
-    background: rgba(26, 32, 44, 0.9);
-    border-color: #4a5568;
-}
-
-body.night-mode .toggle-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.toggle-track {
-    position: relative;
-    width: 3rem;
-    height: 1.75rem;
-    background-color: #e2e8f0;
-    border-radius: 1rem;
-    transition: background-color 0.3s ease;
-}
-
-body.night-mode .toggle-track {
-    background-color: #4a5568;
-}
-
-.toggle-thumb {
-    position: absolute;
-    top: 0.125rem;
-    left: 0.125rem;
-    width: 1.5rem;
-    height: 1.5rem;
-    background-color: white;
-    border-radius: 50%;
-    transition: transform 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.toggle-button.active .toggle-thumb {
-    transform: translateX(1.25rem);
-}
-
-.toggle-label {
-    font-size: 1.25rem;
-    transition: opacity 0.3s ease;
-}
-  
-  .container {
-    height: 64vh;
+.container {
+    min-height: 64vh;
     display: flex;
     justify-content: center;
     align-items: center;
-  }
-  
-  .content {
-    max-width: 40rem;
-    text-align: center;
-  }
-  
-  .title {
-    font-size: 2rem;
-    font-weight: bold;
-  }
-  
-  .subtitle {
-    font-size: 1.25rem;
-    margin: 1rem 0;
-  }
-  
-  .icons {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
+    padding: 1rem;
+}
+
+.content { text-align: center; }
+
+.title { font-size: 2rem; }
+
+.icons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+    gap: 0.75rem;
     margin-top: 1rem;
-  }
-  
-  .icon {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    max-width: 560px;
+}
+
+.icon {
+    display: inline-grid;
+    place-items: center;
     text-decoration: none;
     color: inherit;
-  }
-  
-  .icon img {
-    height: 2rem;
-    width: 2rem;
-    transition: transform 0.3s;
-  }
-  
-  .icon span {
-    display: none;
-    position: absolute;
-    bottom: -1.5rem;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: #fff;
-    padding: 0.2rem 0.5rem;
-    border-radius: 0.2rem;
-    transition: background-color 0.3s ease;
-  }
-
-  body.night-mode .icon span {
-    background-color: rgba(255, 255, 255, 0.9);
-    color: #1a202c;
-  }
-  
-  .icon:hover img {
-    transform: translateY(-1.5rem);
-  }
-  
-  .icon:hover span {
-    display: block;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    aspect-ratio: 1 / 1;
 }
+
+.icon img { width: 28px; height: 28px; }
+
+.icon span { display: none; }
