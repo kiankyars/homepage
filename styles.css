@@ -20,20 +20,20 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
     gap: 0.75rem;
-    margin-top: 1rem;
+    margin: 1rem auto 0;
     max-width: 560px;
+    width: 100%;
 }
 
 .icon {
-    display: inline-grid;
-    place-items: center;
+    display: grid;
     text-decoration: none;
     color: inherit;
     border: 1px solid #ddd;
-    border-radius: 6px;
     aspect-ratio: 1 / 1;
+    width: 100%;
 }
 
-.icon img { width: 28px; height: 28px; }
+.icon img { width: 28px; height: 28px; place-self: center; }
 
 .icon span { display: none; }
