@@ -1,4 +1,3 @@
-/* Minimal styles for layout and square link boxes */
 body {
     margin: 0;
     font-family: Arial, sans-serif;
@@ -34,5 +33,3 @@ body {
 }
 
 .icon img { width: 28px; height: 28px; place-self: center; }
-
-.icon span { display: none; }
