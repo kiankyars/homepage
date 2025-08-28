@@ -33,3 +33,5 @@ body {
 }
 
 .icon img { width: 40px; height: 40px; place-self: center; }
+
+.icon span { display: none; }
