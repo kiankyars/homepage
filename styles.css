@@ -30,7 +30,6 @@ body {
     text-decoration: none;
     color: inherit;
     aspect-ratio: 1 / 1;
-    width: 100%;
 }
 
 .icon img { width: 40px; height: 40px; place-self: center; }
