@@ -22,6 +22,7 @@ body {
     margin: 1rem auto 0;
     max-width: 560px;
     width: 100%;
+    align-items: center;
 }
 
 .icon {
