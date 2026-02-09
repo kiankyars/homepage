@@ -6,18 +6,13 @@ import csv
 import json
 import os
 import re
+import requests
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from pathlib import Path
 from typing import List, Dict, Optional
 from email_validator import validate_email, EmailNotValidError
-
-try:
-    from linkedin_api import Linkedin
-    LINKEDIN_AVAILABLE = True
-except ImportError:
-    LINKEDIN_AVAILABLE = False
 
 
 # Target organizations
@@ -254,13 +249,16 @@ class OutreachFunnel:
         sender_password: str = "",
         dry_run: bool = False,
         filter_contacted: bool = True,
+        company_filter: str = "",
     ):
         """Send emails to all uncontacted contacts."""
         import time as time_module  # Import at top to avoid shadowing
         
+        company_query = company_filter.strip().lower()
         contacts_to_send = [
             (i, c) for i, c in enumerate(self.contacts)
             if c.get("email") and (not filter_contacted or c.get("contacted", "no").lower() != "yes")
+            and (not company_query or company_query in (c.get("company") or "").strip().lower())
         ]
         
         if not contacts_to_send:
@@ -288,95 +286,56 @@ class OutreachFunnel:
         print(f"\nSent {success_count}/{len(contacts_to_send)} emails successfully.")
 
 
-def fetch_linkedin_profile(linkedin_url: str, username: str = "", password: str = "") -> Optional[Dict]:
-    """Fetch LinkedIn profile data using linkedin-api library."""
-    if not LINKEDIN_AVAILABLE:
-        print("linkedin-api not installed. Install with: uv add linkedin-api")
-        return None
-    
-    if not username:
-        username = os.getenv("LINKEDIN_USERNAME", "")
-    if not password:
-        password = os.getenv("LINKEDIN_PASSWORD", "")
-    
-    if not username or not password:
-        print("LinkedIn credentials required. Set LINKEDIN_USERNAME and LINKEDIN_PASSWORD env vars.")
-        return None
-    
-    try:
-        api = Linkedin(username, password)
-        
-        # Extract profile ID from URL
-        # URLs can be: https://linkedin.com/in/username/ or https://www.linkedin.com/in/username/
-        profile_match = re.search(r'/in/([^/]+)', linkedin_url)
-        if not profile_match:
-            print(f"Could not extract profile ID from URL: {linkedin_url}")
-            return None
-        
-        profile_id = profile_match.group(1)
-        profile = api.get_profile(profile_id)
-        return profile
-    except Exception as e:
-        print(f"Error fetching LinkedIn profile: {e}")
-        return None
-
-
-def search_linkedin_people(
-    keywords: str,
-    location: str = "San Francisco Bay Area",
+def search_hunter_domain(
+    domain: str,
+    api_key: str = "",
     company: str = "",
-    username: str = "",
-    password: str = "",
-    limit: int = 25
+    limit: int = 25,
 ) -> List[Dict]:
-    """Search for people on LinkedIn matching criteria."""
-    if not LINKEDIN_AVAILABLE:
-        print("linkedin-api not installed. Install with: uv add linkedin-api")
+    """Search Hunter.io for emails at a domain."""
+    if not api_key:
+        api_key = os.getenv("HUNTER_API_KEY", "")
+    if not api_key:
+        print("Hunter API key required. Set HUNTER_API_KEY env var.")
         return []
-    
-    if not username:
-        username = os.getenv("LINKEDIN_USERNAME", "")
-    if not password:
-        password = os.getenv("LINKEDIN_PASSWORD", "")
-    
-    if not username or not password:
-        print("LinkedIn credentials required. Set LINKEDIN_USERNAME and LINKEDIN_PASSWORD env vars.")
+    if not domain:
+        print("Domain required for Hunter search.")
         return []
-    
-    try:
-        api = Linkedin(username, password)
-        
-        # Build search query
-        query = keywords
-        if company:
-            query += f" {company}"
-        
-        # Search for people
-        results = api.search_people(
-            keywords=query,
-            location_name=location,
-            limit=limit
-        )
-        
-        contacts = []
-        for result in results:
-            profile_url = f"https://linkedin.com/in/{result.get('public_identifier', '')}"
-            contacts.append({
-                "name": result.get("name", ""),
-                "company": company or result.get("headline", ""),
-                "role": result.get("headline", ""),
-                "location": location,
-                "source_url": profile_url,
-                "email": "",
-                "contacted": "no",
-                "response": "",
-                "notes": "",
-            })
-        
-        return contacts
-    except Exception as e:
-        print(f"Error searching LinkedIn: {e}")
+    response = requests.get(
+        "https://api.hunter.io/v2/domain-search",
+        params={"domain": domain, "api_key": api_key, "limit": limit},
+        timeout=20,
+    )
+    if response.status_code != 200:
+        print(f"Hunter API error: {response.status_code} {response.text}")
         return []
+    payload = response.json()
+    data = payload.get("data", {})
+    org_name = company or data.get("organization", "") or domain
+    contacts: List[Dict] = []
+    for entry in data.get("emails", []):
+        email = (entry.get("value") or "").strip()
+        if not email or not validate_email_address(email):
+            continue
+        first = (entry.get("first_name") or "").strip()
+        last = (entry.get("last_name") or "").strip()
+        name = " ".join([first, last]).strip() or entry.get("value", "")
+        role = (entry.get("position") or "").strip()
+        location = (entry.get("location") or "").strip()
+        confidence = entry.get("confidence", "")
+        notes = f"hunter_confidence:{confidence}" if confidence != "" else "hunter"
+        contacts.append({
+            "name": name,
+            "company": org_name,
+            "role": role,
+            "location": location,
+            "source_url": entry.get("linkedin", "") or "https://hunter.io",
+            "email": email,
+            "contacted": "no",
+            "response": "",
+            "notes": notes,
+        })
+    return contacts
 
 
 def import_from_csv(csv_path: str, company: str = "") -> List[Dict]:
@@ -429,6 +388,155 @@ def import_from_csv(csv_path: str, company: str = "") -> List[Dict]:
     return contacts
 
 
+def import_linkedin_export(csv_path: str, company: str = "") -> List[Dict]:
+    """Import contacts from a LinkedIn connections export CSV."""
+    contacts = []
+    path = Path(csv_path)
+    
+    if not path.exists():
+        print(f"File not found: {csv_path}")
+        return contacts
+    
+    with open(path, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if "First Name" in row:
+                first = row.get("First Name", "").strip()
+                last = row.get("Last Name", "").strip()
+                name = f"{first} {last}".strip()
+                role = row.get("Position", "").strip()
+                company_name = row.get("Company", "").strip() or company
+                source_url = row.get("URL", "").strip()
+                email = row.get("Email Address", "").strip()
+                location = "Bay Area"
+            else:
+                name = row.get("fullName", "").strip()
+                role = row.get("jobTitle", "").strip()
+                company_name = row.get("company", "").strip() or company
+                source_url = row.get("profileUrl", "").strip()
+                location = row.get("location", "").strip() or "Bay Area"
+                email = ""
+                additional_info = row.get("additionalInfo", "").strip()
+                if additional_info:
+                    match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", additional_info)
+                    if match:
+                        email = match.group(0)
+            
+            if not name:
+                continue
+            contacts.append({
+                "name": name,
+                "company": company_name,
+                "role": role,
+                "location": location,
+                "source_url": source_url,
+                "email": email if validate_email_address(email) else "",
+                "contacted": "no",
+                "response": "",
+                "notes": "",
+            })
+    
+    return contacts
+
+
+def upsert_contacts(funnel: "OutreachFunnel", contacts: List[Dict]) -> int:
+    """Append contacts and persist; return added count."""
+    if not contacts:
+        return 0
+    def contact_key(contact: Dict) -> str:
+        email = (contact.get("email") or "").strip().lower()
+        if email:
+            return f"email:{email}"
+        source_url = (contact.get("source_url") or "").strip().lower()
+        if source_url:
+            return f"url:{source_url}"
+        name = (contact.get("name") or "").strip().lower()
+        company = (contact.get("company") or "").strip().lower()
+        return f"name:{name}|company:{company}"
+
+    existing_keys = {contact_key(c) for c in funnel.contacts if c}
+    added = 0
+    for contact in contacts:
+        key = contact_key(contact)
+        if key in existing_keys:
+            continue
+        funnel.contacts.append(contact)
+        existing_keys.add(key)
+        added += 1
+    if added:
+        funnel.save_contacts()
+    return added
+
+
+def filter_contacts_by_company(contacts: List[Dict], company_query: str) -> List[Dict]:
+    """Filter contacts by company name substring (case-insensitive)."""
+    if not company_query:
+        return contacts
+    query = company_query.strip().lower()
+    return [
+        c for c in contacts
+        if query in (c.get("company") or "").strip().lower()
+    ]
+
+
+def dedupe_contacts(funnel: "OutreachFunnel") -> int:
+    """Remove duplicate contacts, keeping best data; return removed count."""
+    def contact_key(contact: Dict) -> str:
+        email = (contact.get("email") or "").strip().lower()
+        if email:
+            return f"email:{email}"
+        source_url = (contact.get("source_url") or "").strip().lower()
+        if source_url:
+            return f"url:{source_url}"
+        name = (contact.get("name") or "").strip().lower()
+        company = (contact.get("company") or "").strip().lower()
+        return f"name:{name}|company:{company}"
+
+    def better_contact(a: Dict, b: Dict) -> Dict:
+        """Prefer contacted=yes, email, role, location, source_url, notes."""
+        def score(c: Dict) -> int:
+            score = 0
+            if (c.get("contacted") or "").lower() == "yes":
+                score += 10
+            if c.get("email"):
+                score += 5
+            if c.get("role"):
+                score += 2
+            if c.get("location"):
+                score += 1
+            if c.get("source_url"):
+                score += 1
+            if c.get("notes"):
+                score += 1
+            return score
+        return a if score(a) >= score(b) else b
+
+    seen: Dict[str, Dict] = {}
+    original_count = len(funnel.contacts)
+    for contact in funnel.contacts:
+        key = contact_key(contact)
+        if key in seen:
+            seen[key] = better_contact(seen[key], contact)
+        else:
+            seen[key] = contact
+    funnel.contacts = list(seen.values())
+    removed = original_count - len(funnel.contacts)
+    if removed > 0:
+        funnel.save_contacts()
+    return removed
+
+
+def generate_emails_for_range(funnel: "OutreachFunnel", start_idx: int, count: int):
+    """Generate and store emails for a contiguous range of contacts."""
+    end_idx = start_idx + count
+    for i in range(start_idx, end_idx):
+        contact = funnel.contacts[i]
+        email = funnel.find_email(contact)
+        if email:
+            funnel.update_email(i, email)
+            print(f"  {contact['name']}: {email}")
+
+
 def get_first_name(full_name: str) -> str:
     """Extract first name from full name, handling edge cases."""
     if not full_name:
@@ -465,11 +573,13 @@ if __name__ == "__main__":
         print("Usage:")
         print("  python outreach.py add <name> <company> [role] [source_url]")
         print("  python outreach.py import <csv_file> [company]")
-        print("  python outreach.py search-linkedin <keywords> [--company COMPANY] [--location LOCATION] [--limit N]")
+        print("  python outreach.py import-linkedin-export <csv_file> [company]")
+        print("  python outreach.py search-hunter <domain> [--company COMPANY] [--limit N]")
         print("  python outreach.py list")
         print("  python outreach.py find-emails")
         print("  python outreach.py send <index> [subject] [body_file]")
         print("  python outreach.py send-all [--dry-run] [--location LOCATION] [--day DAY] [--time TIME]")
+        print("  python outreach.py run-anthropic [--linkedin-export CSV] [--hunter] [--limit N] [--dry-run] [--subject SUBJECT]")
         sys.exit(1)
     
     command = sys.argv[1]
@@ -492,27 +602,32 @@ if __name__ == "__main__":
         csv_file = sys.argv[2]
         company = sys.argv[3] if len(sys.argv) > 3 else ""
         contacts = import_from_csv(csv_file, company)
-        for contact in contacts:
-            funnel.contacts.append(contact)
-        funnel.save_contacts()
+        added_count = upsert_contacts(funnel, contacts)
         print(f"Imported {len(contacts)} contacts from {csv_file}")
         # Auto-generate emails for imported contacts
         print("Generating emails...")
-        for i in range(len(funnel.contacts) - len(contacts), len(funnel.contacts)):
-            contact = funnel.contacts[i]
-            email = funnel.find_email(contact)
-            if email:
-                funnel.update_email(i, email)
-                print(f"  {contact['name']}: {email}")
+        generate_emails_for_range(funnel, len(funnel.contacts) - added_count, added_count)
     
-    elif command == "search-linkedin":
+    elif command == "import-linkedin-export":
         if len(sys.argv) < 3:
-            print("Usage: python outreach.py search-linkedin <keywords> [--company COMPANY] [--location LOCATION] [--limit N]")
+            print("Usage: python outreach.py import-linkedin-export <csv_file> [company]")
             sys.exit(1)
         
-        keywords = sys.argv[2]
+        csv_file = sys.argv[2]
+        company = sys.argv[3] if len(sys.argv) > 3 else ""
+        contacts = import_linkedin_export(csv_file, company)
+        added_count = upsert_contacts(funnel, contacts)
+        print(f"Imported {added_count} contacts from {csv_file}")
+        print("Generating emails...")
+        generate_emails_for_range(funnel, len(funnel.contacts) - added_count, added_count)
+    
+    elif command == "search-hunter":
+        if len(sys.argv) < 3:
+            print("Usage: python outreach.py search-hunter <domain> [--company COMPANY] [--limit N]")
+            sys.exit(1)
+        
+        domain = sys.argv[2]
         company = ""
-        location = "San Francisco Bay Area"
         limit = 25
         
         if "--company" in sys.argv:
@@ -520,30 +635,18 @@ if __name__ == "__main__":
             if idx + 1 < len(sys.argv):
                 company = sys.argv[idx + 1]
         
-        if "--location" in sys.argv:
-            idx = sys.argv.index("--location")
-            if idx + 1 < len(sys.argv):
-                location = sys.argv[idx + 1]
-        
         if "--limit" in sys.argv:
             idx = sys.argv.index("--limit")
             if idx + 1 < len(sys.argv):
                 limit = int(sys.argv[idx + 1])
         
-        contacts = search_linkedin_people(keywords, location=location, company=company, limit=limit)
+        contacts = search_hunter_domain(domain, company=company, limit=limit)
         if contacts:
-            for contact in contacts:
-                funnel.contacts.append(contact)
-            funnel.save_contacts()
-            print(f"Added {len(contacts)} contacts from LinkedIn search")
+            added_count = upsert_contacts(funnel, contacts)
+            print(f"Added {len(contacts)} contacts from Hunter domain search")
             # Auto-generate emails
             print("Generating emails...")
-            for i in range(len(funnel.contacts) - len(contacts), len(funnel.contacts)):
-                contact = funnel.contacts[i]
-                email = funnel.find_email(contact)
-                if email:
-                    funnel.update_email(i, email)
-                    print(f"  {contact['name']}: {email}")
+            generate_emails_for_range(funnel, len(funnel.contacts) - added_count, added_count)
         else:
             print("No contacts found or error occurred.")
     
@@ -640,6 +743,66 @@ if __name__ == "__main__":
             sender_email=sender_email,
             sender_password=sender_password,
             dry_run=dry_run,
+        )
+
+    elif command == "run-anthropic":
+        import os
+        dry_run = "--dry-run" in sys.argv
+        subject = "Run in Mission Bay this Wednesday?"
+        linkedin_export = ""
+        limit = 25
+        use_hunter = "--hunter" in sys.argv
+        if "--subject" in sys.argv:
+            idx = sys.argv.index("--subject")
+            if idx + 1 < len(sys.argv):
+                subject = sys.argv[idx + 1]
+        if "--linkedin-export" in sys.argv:
+            idx = sys.argv.index("--linkedin-export")
+            if idx + 1 < len(sys.argv):
+                linkedin_export = sys.argv[idx + 1]
+        if "--limit" in sys.argv:
+            idx = sys.argv.index("--limit")
+            if idx + 1 < len(sys.argv):
+                limit = int(sys.argv[idx + 1])
+        sender_email = os.getenv("SMTP_EMAIL", "")
+        sender_password = os.getenv("SMTP_PASSWORD", "")
+        if not dry_run and (not sender_email or not sender_password):
+            print("Set SMTP_EMAIL and SMTP_PASSWORD environment variables")
+            sys.exit(1)
+        start_idx = len(funnel.contacts)
+        contacts = import_from_csv("people/anthropic.csv", "anthropic")
+        added_count = upsert_contacts(funnel, contacts)
+        print(f"Imported {added_count} contacts from people/anthropic.csv")
+        if added_count:
+            generate_emails_for_range(funnel, start_idx, added_count)
+        if linkedin_export:
+            start_idx = len(funnel.contacts)
+            linkedin_contacts = import_linkedin_export(linkedin_export, "anthropic")
+            linkedin_contacts = filter_contacts_by_company(linkedin_contacts, "anthropic")
+            added_from_linkedin = upsert_contacts(funnel, linkedin_contacts)
+            print(f"Imported {added_from_linkedin} contacts from LinkedIn export")
+            if added_from_linkedin:
+                generate_emails_for_range(funnel, start_idx, added_from_linkedin)
+        if use_hunter:
+            start_idx = len(funnel.contacts)
+            hunter_contacts = search_hunter_domain(
+                "anthropic.com",
+                company="anthropic",
+                limit=limit,
+            )
+            added_from_hunter = upsert_contacts(funnel, hunter_contacts)
+            print(f"Added {added_from_hunter} contacts from Hunter domain search")
+            if added_from_hunter:
+                generate_emails_for_range(funnel, start_idx, added_from_hunter)
+        removed = dedupe_contacts(funnel)
+        if removed:
+            print(f"Removed {removed} duplicate contacts from contacts.csv")
+        funnel.send_bulk(
+            subject=subject,
+            sender_email=sender_email,
+            sender_password=sender_password,
+            dry_run=dry_run,
+            company_filter="anthropic",
         )
     
     else:
